@@ -345,6 +345,11 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
         Browse
       </div>
+
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <a href="sources.html" style="text-decoration:none;color:inherit;">Sources</a>
+      </div>
      
       <div class="nav-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
@@ -354,8 +359,8 @@
 
     <div class="nav-item"> 
         <a href="https://crackyourscode.streamlit.app/" target="_blank" style="text-decoration:none;color:inherit;"> + Live Code Challenge</a>
+        
       </div>
-    </nav>
 
     <div>
       <div class="section-label">🎬 Recently Added</div>
@@ -742,7 +747,9 @@
       startHeroTextCycle();
     } else {
       clearInterval(heroTextTimer);
-      buildHeroTrack();
+      const track = document.getElementById('heroBgTrack');
+      track.innerHTML = `<div class="hero-bg-slide" style="background-image:url(featured-bg.webp)"></div>`;
+      track.style.animation = 'none';
       document.getElementById('heroEyebrow').textContent = 'Featured';
       document.getElementById('heroTitle').textContent = 'Add your first video to get started';
       document.getElementById('heroMeta').textContent = "Paste a YouTube link and it'll show up here";
