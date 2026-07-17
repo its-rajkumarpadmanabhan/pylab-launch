@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PY.LABS — Your Code Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0c0c0f;
+    --surface: #161619;
+    --surface-2: #1e1e22;
+    --line: #2a2a2f;
+    --text: #f2f1ec;
+    --muted: #8d8d95;
+    --accent: #ff3b30;
+    --accent-dim: #7a1f1a;
+    --gold: #f2b705;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  ::selection{ background: var(--accent); color:#fff; }
+
+  /* film-grain edge like a reel border */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    background-image: repeating-linear-gradient(90deg, transparent 0 6px, rgba(255,255,255,0.015) 6px 7px);
+    z-index:1;
+  }
+
+  .app{ display:flex; min-height:100vh; position:relative; z-index:2; }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:250px;
+    flex-shrink:0;
+    background: var(--surface);
+    border-right:1px solid var(--line);
+    padding:28px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:32px;
+  }
+  .brand{
+    font-family:'Anton', sans-serif;
+    font-size:26px;
+    letter-spacing:1px;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .brand .dot{ color:var(--accent); }
+  .brand small{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:9px;
+    letter-spacing:3px;
+    color:var(--muted);
+    margin-top:2px;
+    font-weight:500;
+  }
+
+  nav{ display:flex; flex-direction:column; gap:4px; }
+  .nav-item{
+    display:flex; align-items:center; gap:12px;
+    padding:10px 12px;
+    border-radius:8px;
+    color:var(--muted);
+    font-size:14px; font-weight:500;
+    cursor:pointer;
+    transition:background .15s, color .15s;
+  }
+  .nav-item svg{ width:17px; height:17px; flex-shrink:0; }
+  .nav-item.active{ background: var(--surface-2); color:var(--text); }
+  .nav-item.active svg{ stroke: var(--accent); }
+  .nav-item:hover:not(.active){ background: rgba(255,255,255,0.03); color:var(--text); }
+
+  .section-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:2px;
+    color:var(--muted);
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-bottom:4px;
+  }
+
+  .queue-list{ display:flex; flex-direction:column; gap:10px; }
+  .queue-item{
+    display:flex; gap:10px; align-items:center;
+    cursor:pointer;
+    border-radius:8px;
+    padding:4px;
+    transition:background .15s;
+  }
+  .queue-item:hover{ background: rgba(255,255,255,0.04); }
+  .queue-thumb{
+    width:56px; height:34px; border-radius:5px; object-fit:cover;
+    background: var(--surface-2);
+    flex-shrink:0;
+    border:1px solid var(--line);
+  }
+  .queue-title{
+    font-size:12px; font-weight:600; color:var(--text);
+    line-height:1.3;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+
+  .sidebar-footer{ margin-top:auto; }
+  .add-btn{
+    width:100%;
+    background: var(--accent);
+    color:#fff;
+    border:none;
+    padding:12px;
+    border-radius:8px;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:filter .15s, transform .1s;
+  }
+  .add-btn:hover{ filter:brightness(1.12); }
+  .add-btn:active{ transform:scale(.98); }
+
+  /* ---------- MAIN ---------- */
+  .main{ flex:1; min-width:0; }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 40px;
+  }
+  .search-wrap{
+    flex:1; max-width:420px;
+    position:relative;
+  }
+  .search-wrap input{
+    width:100%;
+    background: var(--surface);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:10px 16px 10px 40px;
+    border-radius:24px;
+    font-size:13px;
+    outline:none;
+  }
+  .search-wrap input:focus{ border-color: var(--accent); }
+  .search-wrap svg{ position:absolute; left:14px; top:50%; transform:translateY(-50%); width:15px; height:15px; stroke:var(--muted); }
+  .profile{ display:flex; align-items:center; gap:10px; }
+  .avatar{
+    width:34px; height:34px; border-radius:50%;
+    background: linear-gradient(135deg, var(--accent), var(--gold));
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:13px;
+  }
+  .profile-name{ font-size:13px; font-weight:600; }
+  .profile-name span{ display:block; font-size:11px; color:var(--muted); font-weight:400; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    margin:0 40px 36px;
+    height:340px;
+    border-radius:16px;
+    position:relative;
+    overflow:hidden;
+    background: var(--surface);
+    display:flex;
+    align-items:flex-end;
+    border:1px solid var(--line);
+  }
+  .hero-bg-track{
+    position:absolute; inset:0;
+    display:flex;
+    animation: hero-scroll linear infinite;
+  }
+  .hero-bg-slide{
+    flex-shrink:0;
+    width:100%; height:100%;
+    background-size:cover;
+    background-position:center;
+    filter:saturate(1.05);
+  }
+  @keyframes hero-scroll{
+    from{ transform: translateX(0); }
+    to{ transform: translateX(-50%); }
+  }
+  .hero-fade{
+    position:absolute; inset:0;
+    background: linear-gradient(90deg, rgba(12,12,15,.97) 15%, rgba(12,12,15,.55) 55%, rgba(12,12,15,.15) 100%),
+                linear-gradient(0deg, rgba(12,12,15,.9) 0%, transparent 55%);
+  }
+  .hero-content{ position:relative; padding:32px 40px; max-width:560px; }
+  .hero-eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:3px; color:var(--gold);
+    text-transform:uppercase; margin-bottom:10px;
+  }
+  .hero-title{
+    font-family:'Anton', sans-serif;
+    font-size:44px;
+    line-height:1.02;
+    letter-spacing:.5px;
+    margin-bottom:14px;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .hero-meta{ color:var(--muted); font-size:13px; margin-bottom:20px; }
+  .hero-actions{ display:flex; gap:10px; }
+  .btn-watch{
+    background:#fff; color:#111; border:none;
+    padding:12px 26px; border-radius:8px; font-weight:700; font-size:14px;
+    display:flex; align-items:center; gap:8px; cursor:pointer;
+    text-decoration:none;
+  }
+  .btn-watch:hover{ background:#e9e9e9; }
+  .btn-ghost{
+    background: rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15);
+    width:44px; height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .btn-ghost:hover{ background: rgba(255,255,255,0.15); }
+
+  /* ---------- ROWS ---------- */
+  .row{ padding:0 40px 36px; }
+  .row-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .row-title{ font-size:19px; font-weight:700; letter-spacing:.2px; }
+  .row-count{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--muted); }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
+    gap:18px;
+  }
+  .card{
+    background: var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    overflow:hidden;
+    cursor:pointer;
+    transition: transform .18s ease, border-color .18s ease;
+    text-decoration:none;
+    color:var(--text);
+    display:block;
+  }
+  .card:hover{ transform: translateY(-4px); border-color: var(--accent); }
+  .card-thumb-wrap{ position:relative; aspect-ratio:16/9; background:#000; overflow:hidden; }
+  .card-thumb{ width:100%; height:100%; object-fit:cover; display:block; }
+  .card-play{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    background: rgba(0,0,0,0); transition: background .18s;
+  }
+  .card:hover .card-play{ background: rgba(0,0,0,.25); }
+  .card-play svg{ width:40px; height:40px; opacity:0; transition:opacity .18s, transform .18s; transform:scale(.85); }
+  .card:hover .card-play svg{ opacity:1; transform:scale(1); }
+  .card-body{ padding:12px 14px 14px; }
+  .card-title{
+    font-size:13.5px; font-weight:600; line-height:1.3; margin-bottom:6px;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+    min-height:34px;
+  }
+  .card-sub{ font-size:11px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+  .badge{
+    font-family:'JetBrains Mono', monospace;
+    font-size:9px; letter-spacing:1px;
+    background: var(--accent-dim); color:#ff8f88;
+    padding:2px 6px; border-radius:4px;
+  }
+
+  /* ---------- EMPTY STATE ---------- */
+  .empty{
+    border:1px dashed var(--line);
+    border-radius:12px;
+    padding:60px 20px;
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+  }
+  .empty b{ color:var(--text); display:block; font-size:16px; margin-bottom:6px; font-family:'Anton', sans-serif; letter-spacing:.5px; }
+
+  /* ---------- MODAL ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; background: rgba(0,0,0,.6);
+    display:none; align-items:center; justify-content:center; z-index:50;
+    backdrop-filter: blur(3px);
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal{
+    background: var(--surface); border:1px solid var(--line);
+    border-radius:14px; width:420px; max-width:90vw;
+    padding:26px;
+  }
+  .modal h3{ font-family:'Anton', sans-serif; font-size:20px; letter-spacing:.5px; margin-bottom:4px; }
+  .modal p.hint{ color:var(--muted); font-size:12px; margin-bottom:18px; }
+  .modal input[type=text]{
+    width:100%; background: var(--surface-2); border:1px solid var(--line); color:var(--text);
+    padding:11px 14px; border-radius:8px; font-size:13px; outline:none; margin-bottom:12px;
+  }
+  .modal input[type=text]:focus{ border-color: var(--accent); }
+  .modal-preview{
+    display:none; gap:10px; align-items:center; margin-bottom:14px;
+    background: var(--surface-2); border-radius:8px; padding:8px; border:1px solid var(--line);
+  }
+  .modal-preview.show{ display:flex; }
+  .modal-preview img{ width:80px; height:45px; object-fit:cover; border-radius:5px; }
+  .modal-preview .mp-title{ font-size:12px; font-weight:600; line-height:1.3; }
+  .modal-status{ font-size:11px; color:var(--muted); margin-bottom:12px; min-height:14px; }
+  .modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:6px; }
+  .btn-cancel{ background:transparent; border:1px solid var(--line); color:var(--muted); padding:10px 18px; border-radius:8px; font-size:13px; cursor:pointer; }
+  .btn-cancel:hover{ color:var(--text); border-color:var(--muted); }
+  .btn-confirm{ background: var(--accent); border:none; color:#fff; padding:10px 20px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; }
+  .btn-confirm:hover{ filter:brightness(1.1); }
+  .btn-confirm:disabled{ opacity:.4; cursor:not-allowed; }
+
+  @media (max-width: 900px){
+    .sidebar{ display:none; }
+    .hero-title{ font-size:32px; }
+    .row, .topbar, .hero{ margin-left:16px; margin-right:16px; padding-left:16px; padding-right:16px; }
+    .topbar{ padding-left:16px; padding-right:16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span>PY.LABS.py<span class="dot">.</span></span>
+    </div>
+    <div class="brand" style="font-size:0"><small>YOUR CODE LIBRARY</small></div>
+
+    <nav>
+      <div class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Browse
+      </div>
+     
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        <a href="https://youtube.com/@pylabspy?si=enDR7c4jai_g0ZJn" target="_blank" style="text-decoration:none;color:inherit;">Subscribe YouTube</a>
+      </div>
+    </nav>
+
+    <div class="nav-item"> 
+        <a href="https://crackyourscode.streamlit.app/" target="_blank" style="text-decoration:none;color:inherit;"> + Live Code Challenge</a>
+      </div>
+    </nav>
+
+    <div>
+      <div class="section-label">🎬 Recently Added</div>
+      <div class="queue-list" id="sidebarQueue"></div>
+    </div>
+
+    <div class="sidebar-footer">
+      
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Search your videos...">
+      </div>
+      <div class="profile"><a href="https://instagram.com/i.rajkumar__" target="_blank" style="text-decoration:none;">
+        <div class="avatar">RJ</div>
+        <div class="profile-name" ></a>i.rajkumar__<span>@instagram</span></div>
+      </a></div>
+    </div>
+
+    <!-- HERO (auto-fills with most recently added video) -->
+    <div class="hero" id="hero">
+      <div class="hero-bg-track" id="heroBgTrack"></div>
+      <div class="hero-fade"></div>
+      <div class="hero-content">
+        <div class="hero-eyebrow" id="heroEyebrow">Featured</div>
+        <div class="hero-title" id="heroTitle">Add your first video to get started</div>
+        <div class="hero-meta" id="heroMeta">Paste a YouTube link below and it'll show up here</div>
+        <div class="hero-actions">
+          <a class="btn-watch" id="heroWatch" href="#" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            Watch
+          </a>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- LIBRARY GRID -->
+    <div class="row">
+      <div class="row-head">
+        <div class="row-title">Your Library</div>
+        <div class="row-count" id="rowCount">0 videos</div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ADD VIDEO MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>Add a video</h3>
+    <p class="hint">Paste any YouTube link — we'll pull the thumbnail automatically.</p>
+    <input type="text" id="ytUrlInput" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+    <div class="modal-preview" id="modalPreview">
+      <img id="modalPreviewImg" src="" alt="">
+      <div class="mp-title" id="modalPreviewTitle">Loading title…</div>
+    </div>
+    <div class="modal-status" id="modalStatus"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" id="confirmBtn" onclick="confirmAdd()" disabled>Add to Library</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // In-memory video store (no browser storage used)
+  let videos = [
+    {
+      id: 'uySn8o4Nl7w',
+      url: 'https://youtu.be/uySn8o4Nl7w',
+      title: 'Sample Video',
+      author: '',
+      addedAt: Date.now() - 60000
+    },
+    {
+      id: 'YS6tGe861uw',
+      url: 'https://youtu.be/YS6tGe861uw',
+      title: 'Sample Video',
+      author: '',
+      addedAt: Date.now() - 160000
+    },
+    {
+      id: 'tzdHyKxKo3M',
+      url: 'https://youtu.be/tzdHyKxKo3M',
+      title: 'Sample Video',
+      author: '',
+      addedAt: Date.now() - 60000
+    },
+    {
+      id: 'RFBxXihm4HE',
+      url: 'https://youtu.be/RFBxXihm4HE',
+      title: 'Sample Video',
+      author: '',
+      addedAt: Date.now() - 160000
+    },
+    {
+      id: 'XNBGxSWIfk8',
+      url: 'https://youtu.be/XNBGxSWIfk8',
+      title: 'Sample Video',
+      author: '',
+      addedAt: Date.now() - 60000
+    },
+    {
+      id: 'RFBxXihm4HE',
+      url: 'https://youtu.be/RFBxXihm4HE',
+      title: 'Sample Video',
+      author: '',
+      addedAt: Date.now() - 320000
+    },
+    {
+      id: 'XNBGxSWIfk8',
+      url: 'https://youtu.be/XNBGxSWIfk8',
+      title: 'Sample Video',
+      author: '',
+      addedAt: Date.now() - 260000
+    },
+    {
+      id: 'TGZlTlfbsiU',
+      url: 'https://youtu.be/TGZlTlfbsiU',
+      title: 'Sample Video',
+      author: '',
+      addedAt: Date.now() - 260000
+    },
+    {
+  id: 'dJINpDrK5LA',
+  url: 'https://youtu.be/dJINpDrK5LA',
+  title: 'Sample Video',
+  author: '',
+  addedAt: Date.now() - 420000
+  },
+  {
+    id: 'z1yQWIREEkQ',
+    url: 'https://youtu.be/z1yQWIREEkQ',
+    title: 'Sample Video',
+    author: '',
+    addedAt: Date.now() - 780000
+  },
+  {
+    id: 'X6-oEiNtxzM',
+    url: 'https://youtu.be/X6-oEiNtxzM',
+    title: 'Sample Video',
+    author: '',
+    addedAt: Date.now() - 1250000
+  },
+  {
+    id: 'mjoM84qHELM',
+    url: 'https://youtu.be/mjoM84qHELM',
+    title: 'Sample Video',
+    author: '',
+    addedAt: Date.now() - 1680000
+  },
+  {
+    id: '1LSBuMTKxTE',
+    url: 'https://youtu.be/1LSBuMTKxTE',
+    title: 'Sample Video',
+    author: '',
+    addedAt: Date.now() - 2140000
+  },
+  {
+    id: 'sjhvvRlwEOc',
+    url: 'https://youtu.be/sjhvvRlwEOc',
+    title: 'Sample Video',
+    author: '',
+    addedAt: Date.now() - 2870000
+  },
+    {
+    id: 'FeYROO1vaC0',
+    url: 'https://youtu.be/FeYROO1vaC0',
+    title: 'Sample Video',
+    author: '',
+    addedAt: Date.now() - 3410000
+  },
+  {
+    id: 'I8YOJZQ-pI0',
+    url: 'https://youtu.be/I8YOJZQ-pI0',
+    title: 'Sample Video',
+    author: '',
+    addedAt: Date.now() - 3890000
+  },
+  {
+    id: '6AH2mGQLV4s',
+    url: 'https://youtu.be/6AH2mGQLV4s',
+    title: 'Sample Video',
+    author: '',
+    addedAt: Date.now() - 4470000
+  },
+  {
+    id: 'og1HTuYKygc',
+    url: 'https://youtu.be/og1HTuYKygc',
+    title: 'Sample Video',
+    author: '',
+    addedAt: Date.now() - 5120000
+  },
+
+
+    
+
+   
+   
+  ];
+  let pendingVideo = null;
+
+  // Try to fetch real titles for the sample videos on load
+  (async function loadSampleTitles(){
+    for(const v of videos){
+      try{
+        const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(v.url)}&format=json`);
+        if(res.ok){
+          const data = await res.json();
+          v.title = data.title || v.title;
+          v.author = data.author_name || '';
+          render();
+        }
+      }catch(e){ /* keep placeholder title */ }
+    }
+  })();
+
+  function extractVideoId(url){
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=)([\w-]{11})/,
+      /(?:youtu\.be\/)([\w-]{11})/,
+      /(?:youtube\.com\/embed\/)([\w-]{11})/,
+      /(?:youtube\.com\/shorts\/)([\w-]{11})/,
+    ];
+    for(const p of patterns){
+      const m = url.match(p);
+      if(m) return m[1];
+    }
+    return null;
+  }
+
+  function thumbUrl(id){
+    return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+  }
+  const urlInput = document.getElementById('ytUrlInput');
+  const modalPreview = document.getElementById('modalPreview');
+  const modalPreviewImg = document.getElementById('modalPreviewImg');
+  const modalPreviewTitle = document.getElementById('modalPreviewTitle');
+  const modalStatus = document.getElementById('modalStatus');
+  const confirmBtn = document.getElementById('confirmBtn');
+
+  let debounceTimer;
+  urlInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(handleUrlInput, 400);
+  });
+
+  async function handleUrlInput(){
+    const url = urlInput.value.trim();
+    const id = extractVideoId(url);
+    modalStatus.textContent = '';
+    if(!id){
+      modalPreview.classList.remove('show');
+      confirmBtn.disabled = true;
+      pendingVideo = null;
+      if(url.length > 0) modalStatus.textContent = "Couldn't recognize that as a YouTube link.";
+      return;
+    }
+    modalPreviewImg.src = thumbUrl(id);
+    modalPreviewTitle.textContent = 'Loading title…';
+    modalPreview.classList.add('show');
+    confirmBtn.disabled = false;
+    pendingVideo = { id, url, title: 'Untitled video' };
+
+    try{
+      const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+      if(res.ok){
+        const data = await res.json();
+        pendingVideo.title = data.title || 'Untitled video';
+        pendingVideo.author = data.author_name || '';
+        modalPreviewTitle.textContent = pendingVideo.title;
+      } else {
+        modalPreviewTitle.textContent = 'Title unavailable — will add as "Untitled video"';
+      }
+    }catch(e){
+      modalPreviewTitle.textContent = 'Title unavailable — will add as "Untitled video"';
+    }
+  }
+
+  function confirmAdd(){
+    if(!pendingVideo) return;
+    videos.unshift({
+      id: pendingVideo.id,
+      url: pendingVideo.url,
+      title: pendingVideo.title,
+      author: pendingVideo.author || '',
+      addedAt: Date.now()
+    });
+    render();
+    closeModal();
+  }
+
+  function openModal(){
+    document.getElementById('modalOverlay').classList.add('open');
+    urlInput.value = '';
+    urlInput.focus();
+    modalPreview.classList.remove('show');
+    confirmBtn.disabled = true;
+    modalStatus.textContent = '';
+    pendingVideo = null;
+  }
+  function closeModal(){
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+  document.getElementById('modalOverlay').addEventListener('click', (e) => {
+    if(e.target.id === 'modalOverlay') closeModal();
+  });
+  urlInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' && !confirmBtn.disabled) confirmAdd();
+  });
+
+  function removeVideo(id, evt){
+    evt.stopPropagation();
+    evt.preventDefault();
+    videos = videos.filter(v => v.id !== id);
+    render();
+  }
+
+  document.getElementById('searchInput').addEventListener('input', render);
+
+  function timeAgo(ts){
+    const s = Math.floor((Date.now()-ts)/1000);
+    if(s < 60) return 'just now';
+    const m = Math.floor(s/60);
+    if(m < 60) return `${m}m ago`;
+    const h = Math.floor(m/60);
+    if(h < 24) return `${h}h ago`;
+    return `${Math.floor(h/24)}d ago`;
+  }
+
+  let heroIndex = 0;
+  let heroTextTimer = null;
+
+  function setHeroText(v){
+    document.getElementById('heroEyebrow').textContent = heroIndex === 0 ? 'Latest Addition' : 'Featured';
+    document.getElementById('heroTitle').textContent = v.title;
+    document.getElementById('heroMeta').textContent = (v.author ? v.author + ' · ' : '') + 'Added ' + timeAgo(v.addedAt);
+    document.getElementById('heroWatch').href = v.url;
+  }
+
+  function buildHeroTrack(){
+    const track = document.getElementById('heroBgTrack');
+    if(videos.length === 0){ track.innerHTML = ''; track.style.animation = 'none'; return; }
+    // duplicate the list so the sideways scroll loops seamlessly
+    const slides = [...videos, ...videos].map(v => `
+      <div class="hero-bg-slide" style="background-image:url(${thumbUrl(v.id)})"></div>
+    `).join('');
+    track.innerHTML = slides;
+    const perSlide = 5; // seconds each slide is on screen
+    track.style.animation = `hero-scroll ${videos.length * perSlide}s linear infinite`;
+  }
+
+  function startHeroTextCycle(){
+    clearInterval(heroTextTimer);
+    if(videos.length === 0) return;
+    setHeroText(videos[heroIndex]);
+    if(videos.length > 1){
+      heroTextTimer = setInterval(() => {
+        heroIndex = (heroIndex + 1) % videos.length;
+        setHeroText(videos[heroIndex]);
+      }, 5000);
+    }
+  }
+
+  function render(){
+    const grid = document.getElementById('grid');
+    const sidebarQueue = document.getElementById('sidebarQueue');
+    const query = document.getElementById('searchInput').value.trim().toLowerCase();
+    const filtered = query ? videos.filter(v => v.title.toLowerCase().includes(query)) : videos;
+
+    document.getElementById('rowCount').textContent = `${videos.length} video${videos.length===1?'':'s'}`;
+
+    // Hero
+    if(videos.length > 0){
+      if(heroIndex >= videos.length) heroIndex = 0;
+      buildHeroTrack();
+      startHeroTextCycle();
+    } else {
+      clearInterval(heroTextTimer);
+      buildHeroTrack();
+      document.getElementById('heroEyebrow').textContent = 'Featured';
+      document.getElementById('heroTitle').textContent = 'Add your first video to get started';
+      document.getElementById('heroMeta').textContent = "Paste a YouTube link and it'll show up here";
+      document.getElementById('heroWatch').href = '#';
+    }
+
+    // Sidebar queue (top 4)
+    sidebarQueue.innerHTML = videos.slice(0,4).map(v => `
+      <div class="queue-item" onclick="window.open('${v.url}','_blank')">
+        <img class="queue-thumb" src="${thumbUrl(v.id)}" alt="">
+        <div class="queue-title">${escapeHtml(v.title)}</div>
+      </div>
+    `).join('') || `<div style="font-size:11px;color:var(--muted)">Nothing here yet</div>`;
+
+    // Grid
+    if(videos.length === 0){
+      grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+        <b>Your library is empty</b>
+        Click "Add YouTube Link" in the sidebar to add your first video.
+      </div>`;
+      return;
+    }
+    if(filtered.length === 0){
+      grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+        <b>No matches</b>
+        Try a different search term.
+      </div>`;
+      return;
+    }
+    grid.innerHTML = filtered.map(v => `
+      <a class="card" href="${v.url}" target="_blank" rel="noopener">
+        <div class="card-thumb-wrap">
+          <img class="card-thumb" src="${thumbUrl(v.id)}" alt="${escapeHtml(v.title)}" loading="lazy">
+          <div class="card-play">
+            <svg viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,.5)"/><path d="M10 8l6 4-6 4z" fill="#fff"/></svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">${escapeHtml(v.title)}</div>
+          <div class="card-sub">
+            <span class="badge">YOUTUBE</span>
+            <span>${timeAgo(v.addedAt)}</span>
+          </div>
+        </div>
+      </a>
+    `).join('');
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  render();
+</script>
+
+</body>
+</html>
